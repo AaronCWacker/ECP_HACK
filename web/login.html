@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Roland Miller based on Colorlib&copy;'s login pages.">
+    <title>Login Validation</title>
+
+    <script src="web/js/dashboardExtensions.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="web/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="web/fonts/Linearicons-Free-v1.0.0/icon-font.min.css">
+    <link rel="stylesheet" type="text/css" href="web/css/util.css">
+    <link rel="stylesheet" type="text/css" href="web/css/main.css">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/optum_styles.css')}}">
+</head>
+
+<body>
+<div id="login_app" class="limiter container-login100 wrap-login100 p-l-110 p-r-110 p-t-62 p-b-33"
+     style="background-image: url({{ url_for('static', filename='images/bg-01.jpg') }});">
+
+    <form action="" method="post">
+        <div><h1 class="login100-form-title">Clinical Machine Learning Access</h1></div>
+
+        <div class="p-t-31 p-b-9 txt1">MS ID (User Name)</div>
+        <div class="wrap-input100 validate-input" data-validate="Username is required">
+            <input type="text" name="userName" class="input100" placeholder="MS ID" required value="{{user_name}}">
+            <span class="focus-input100"></span>
+        </div>
+
+        <div class="p-t-13 p-b-9 txt1">Password</div>
+        <div class="wrap-input100 validate-input m-b-12" data-validate="Password is required">
+            <span class="btn-show-pass">
+                <i @click="togglePassword" class="fa fa-eye"></i>
+            </span>
+            <input :type="passwordType" name="password" class="input100" placeholder="Password" required>
+            <span class="focus-input100"></span>
+        </div>
+        <div class="flex-sb-m w-full p-b-48">
+            <div class="container-login100-form-btn m-t-17">
+                <button class="login100-form-btn">Sign In</button>
+            </div>
+            {% if error %}
+            <p class="error p-t-13 p-b-9 txt1"><strong>Error:</strong> {{ error }}
+                {% endif %}
+        </div>
+    </form>
+    <footer>
+        <div class="p-t-31 p-b-9 txt1">
+            <p>Contact information: <a href="mailto:roland.miller@optum.com">
+                roland.miller@optum.com</a>.</p>
+            <p>Original login template created from <a href="https://colorlib.com/wp/html5-and-css3-login-forms/"
+                                                 target="_blank">Colorlib&copy; Login Pages</a></p>
+            <br>
+            <p>To get access to this dashboard, place a Windows platform request in <a href="https://secure.uhc.com/" target="_blank">
+                Secure</a> for group Arch_Clinical_Dashboard.</p>
+        </div>
+    </footer>
+</div>
+
+</body>
+<script type="text/javascript">
+    let app = new Vue({
+        el: '#login_app',
+        data: {
+            passwordType: 'password'
+        },
+        methods: {
+            togglePassword: function () {
+                this.passwordType = this.passwordType === 'password' ? 'text' : 'password';
+            }
+        }  // methods
+    });
+
+</script>
+
+</html>
