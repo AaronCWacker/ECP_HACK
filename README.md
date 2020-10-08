@@ -1,2 +1,3 @@
 # ECP_HACK
-test
+
+Enterprise Clinical Platform - Hackathon
