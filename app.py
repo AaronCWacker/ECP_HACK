@@ -88,7 +88,7 @@ def login():
 @app.route('/main_page/<display_name>')
 def main_page(display_name):
     """
-    :param display_name:
+    :param display_name:hwo to get requirements.
     :return:
     ---
     tags:
