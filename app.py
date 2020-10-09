@@ -67,7 +67,7 @@ def hello_world():
         - status
     """
     print_begin()
-    date_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+  #  date_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     print_end()
     return f'<b>Hello World!</b> I\'m alive. prior_auth<p>'
 
