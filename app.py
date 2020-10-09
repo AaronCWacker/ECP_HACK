@@ -1,23 +1,24 @@
-import datetime
 import logging
-from datetime import datetime
 
+# import utils.html_markup as markup
+# from config.config_rw import ConfigRW
+from dashboards.nlp_dashboard import NlpDashboard
 from flask import Flask
+from flask import jsonify
 from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
 from flask_cors import CORS
-# from flask_swagger_ui import get_swaggerui_blueprint as get_blueprint
-# from waitress import serve
+from inMemoryData.InMemoryManager import InMemoryManager
 
 import definitions
-# import utils.html_markup as markup
-# from config.config_rw import ConfigRW
-from dashboards.nlp_dashboard import NlpDashboard
 # from definitions import Settings
 from utils.print_enh import print_begin
 from utils.print_enh import print_end
+
+# from flask_swagger_ui import get_swaggerui_blueprint as get_blueprint
+# from waitress import serve
 
 # think of using connexion for swagger implementation
 app = Flask(__name__,
@@ -27,14 +28,15 @@ CORS(app)
 # DASHBOARD_PORT = 5000
 my_ip_address = definitions.get_ip_address()
 # BASE_URL = f'http://{my_ip_address}:{DASHBOARD_PORT}'
-global_idx = 0
-
+imm = InMemoryManager()
 
 # def start_app() -> None:
 current_logger = definitions.setup_logger(__name__, level=logging.DEBUG)
+
+
 # current_logger.info(BASE_URL)
-    # app.run(host=ip_address, port=dashboard_port, threaded=True, debug=True)
-    # serve(app, host=my_ip_address, port=DASHBOARD_PORT, threads=20)
+# app.run(host=ip_address, port=dashboard_port, threaded=True, debug=True)
+# serve(app, host=my_ip_address, port=DASHBOARD_PORT, threads=20)
 
 
 @app.route('/status')
@@ -47,7 +49,7 @@ def hello_world():
         - status
     """
     print_begin()
-  #  date_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    #  date_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     print_end()
     return f'<b>Hello World!</b> I\'m alive. prior_auth<p>'
 
@@ -120,6 +122,26 @@ def main_dashboard(method_call):
     """
     return dashboard.post(method_call)
 
+
+@app.route('/search', methods=['POST'])
+def search_data():
+    """
+    search for data with in pandas
+    :param speech_text:
+    :return:
+    ---
+    tags:
+        - search text
+    """
+    if not request.is_json:
+        return jsonify({"msg": "Missing JSON in request"}), 400
+
+    speech_text = request.json.get("speech_text", None)
+
+    if not speech_text:
+        return jsonify({"msg": "Missing search parameter"}), 400
+
+    return jsonify({"speech_text": f'{imm.dataframes_search(str(speech_text))}'}), 200
 
 # if __name__ == '__main__':
 #     start_app()
