@@ -9,13 +9,13 @@ from flask import request
 from flask import url_for
 from flask_cors import CORS
 # from flask_swagger_ui import get_swaggerui_blueprint as get_blueprint
-from waitress import serve
+# from waitress import serve
 
 import definitions
-import utils.html_markup as markup
-from config.config_rw import ConfigRW
+# import utils.html_markup as markup
+# from config.config_rw import ConfigRW
 from dashboards.nlp_dashboard import NlpDashboard
-from definitions import Settings
+# from definitions import Settings
 from utils.print_enh import print_begin
 from utils.print_enh import print_end
 
@@ -24,37 +24,17 @@ app = Flask(__name__,
             template_folder=f'{definitions.get_project_root()}/web',
             static_folder=f'{definitions.get_project_root()}/web')
 CORS(app)
-DASHBOARD_PORT = 5000
+# DASHBOARD_PORT = 5000
 my_ip_address = definitions.get_ip_address()
-BASE_URL = f'http://{my_ip_address}:{DASHBOARD_PORT}'
+# BASE_URL = f'http://{my_ip_address}:{DASHBOARD_PORT}'
 global_idx = 0
 
-config_rw = ConfigRW(Settings.PRIOR_AUTH_SETTINGS.value)
 
-
-def start_app() -> None:
-    """
-    Starts the background process so that other processes can change the settings.
-    :return:
-    """
-    # blueprint = get_blueprint(
-    #     config={  # Swagger UI config overrides
-    #         'app_name': "Test application"
-    #     },
-    #     # oauth_config={ # OAuth config. See https://github.com/swagger-api/swagger-ui#oauth2-configuration .
-    #     # 'clientId': "your-client-id",
-    #     # 'clientSecret': "your-client-secret-if-required",
-    #     # 'realm': "your-realms",
-    #     # 'appName': "your-app-name",
-    #     # 'scopeSeparator': " ",
-    #     # 'additionalQueryStringParams': {'test': "hello"}
-    #     # }
-    # )
-
-    current_logger = definitions.setup_logger(__name__, level=logging.DEBUG)
-    current_logger.info(BASE_URL)
+# def start_app() -> None:
+current_logger = definitions.setup_logger(__name__, level=logging.DEBUG)
+# current_logger.info(BASE_URL)
     # app.run(host=ip_address, port=dashboard_port, threaded=True, debug=True)
-    serve(app, host=my_ip_address, port=DASHBOARD_PORT, threads=20)
+    # serve(app, host=my_ip_address, port=DASHBOARD_PORT, threads=20)
 
 
 @app.route('/status')
@@ -117,12 +97,12 @@ def main_page(display_name):
     # config_rw = ConfigRW(Settings.PRIOR_AUTH_SETTINGS.value)
     print_begin()
     ip_address = definitions.get_ip_address()
-    server_options = markup.server_options(ip_address)
+    # server_options = markup.server_options(ip_address)
     return render_template('DashboardPriorAuth.html', error=None,
-                           server_options=server_options,
                            def_server_option=ip_address,
                            display_name=display_name,
                            )
+    # server_options=server_options,
 
 
 dashboard = NlpDashboard()
@@ -141,5 +121,5 @@ def main_dashboard(method_call):
     return dashboard.post(method_call)
 
 
-if __name__ == '__main__':
-    start_app()
+# if __name__ == '__main__':
+#     start_app()
