@@ -54,9 +54,9 @@ def hello_world():
     return f'<b>Hello World!</b> I\'m alive. prior_auth<p>'
 
 
-@app.route('/<string:page_name>/')
-def render_static(page_name):
-    return render_template(f'temp/{page_name}.html')
+# @app.route('/<string:page_name>/')
+# def render_static(page_name):
+#     return render_template(f'temp/{page_name}.html')
 
 
 @app.route('/', methods=['GET', 'POST'])
