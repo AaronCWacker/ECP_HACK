@@ -21,6 +21,7 @@ parts/
 sdist/
 var/
 *.egg-info/
+.ideas/
 .installed.cfg
 *.egg
 
@@ -92,3 +93,8 @@ ENV/
 # Visual Studio Code
 .vscode/
 
+.idea/workspace.xml
+.idea/workspace.xml
+.idea/misc.xml
+.idea/workspace.xml
+.idea/workspace.xml
