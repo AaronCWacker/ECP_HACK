@@ -1,0 +1,1144 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clinical Machine Learning Dashboard</title>
+
+
+    <!-- development version, includes helpful console warnings -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <!-- production version, optimized for size and speed -->
+    <!--<script src="https://cdn.jsdelivr.net/npm/vue"></script>-->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>-->
+
+    <!--add promises-->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js"></script>-->
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="{{url_for('static', filename='js/vue.min.js')}}"></script>
+    <script type="text/javascript" src="{{url_for('static', filename='js/dashboardExtensions.js')}}"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/vuejs-datepicker"></script>
+    <script src="https://cdn.jsdelivr.net/npm/babel-polyfill/dist/polyfill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.0.19/dist/vuetify.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+
+    <!--<link rel="stylesheet" type="text/css" href="web/fonts/font-awesome-4.7.0/css/font-awesome.min.css">-->
+    <!--<link rel="stylesheet" type="text/css" href="web/fonts/Linearicons-Free-v1.0.0/icon-font.min.css">-->
+    <!--<link rel="stylesheet" type="text/css" href="web/css/util.css">-->
+    <!--<link rel="stylesheet" type="text/css" href="web/css/main.css">-->
+    <link rel="shortcut icon" type="image/png" href="{{url_for('static', filename='img/favicon.png')}}"/>
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/optum_styles.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/vue_tabs_related.css')}}">
+</head>
+
+<body>
+<v-app id="app">
+    <br>
+    <table>
+        <tr>
+            <td colspan="6"><h1><label class="dashboard">Clinical Machine Learning Dashboard</label></h1></td>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td>
+                <v-select
+                        attach
+                        :items="server_options"
+                        label="Target Server"
+                        dense outlined
+                        value="{{def_server_option}}"
+                        v-model="url"
+                ></v-select>
+            </td>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td>
+                <v-text-field
+                        label="Record Count *"
+                        placeholder="count"
+                        dense outlined clearable single-line
+                        value="50"
+                        type="number"
+                        v-model="recordCount"
+                ></v-text-field>
+            </td>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td>
+                <label>Database Credentials</label>
+                {{db_site}}<br>{{db_user_name}}
+            </td>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td>
+                Welcome<br><label>{{display_name}}</label>
+            </td>
+        </tr>
+    </table>
+
+    <v-tabs dark>
+        <v-tab>Care Guidance Datasets</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-select
+                                attach
+                                :items="care_guidance_options"
+                                label="Report"
+                                dense
+                                outlined
+                                value="{{cg_option}}"
+                                v-model="hsc_list_sql_selected"
+                        ></v-select>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <v-btn v-on:click="restCall('priorAuthList', 'hsc_list_data')">Get Data Set</v-btn>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="hsc_list_data"></div>
+            <br>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="hsc_list_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+
+        <v-tab>Benefits</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-text-field
+                                label="Member Id *"
+                                placeholder="member id"
+                                outlined
+                                clearable
+                                v-model="benefits_mbr_id"
+                        ></v-text-field>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <v-text-field
+                                label="Procedure Code"
+                                placeholder="procedure code"
+                                outlined
+                                clearable
+                                v-model="benefits_proc_cd"
+                        ></v-text-field>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <v-text-field
+                                label="Category"
+                                placeholder="category"
+                                outlined
+                                clearable
+                                v-model="benefits_category"
+                        ></v-text-field>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <v-text-field
+                                label="Search Text"
+                                placeholder="search text"
+                                outlined
+                                clearable
+                                v-model="benefits_search"
+                        ></v-text-field>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <v-select
+                                attach
+                                :items="benefits_options"
+                                label="Choices"
+                                dense
+                                outlined
+                                value="{{def_benefits_option}}"
+                                v-model="benefits_sql_selected"
+                        ></v-select>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <v-btn id="benefits_btn" v-on:click="restCall('benefits', 'benefits_data')">Get Benefits
+                        </v-btn>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="benefits_data"></div>
+            <br>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="benefits_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+
+        <v-tab>Deep Learning Decisions</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-btn v-on:click="decisionCall('batchUpdateML', 'batch_machine_learning_data')">Run Deep
+                            Learning Decisions
+                        </v-btn>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        Start Date
+                        <vuejs-datepicker v-model="batchStartDate" id="batch_start_date" format="yyyy-MM-dd"
+                                          typeable></vuejs-datepicker>
+                    </td>
+                    <td>&nbsp;</td>
+                    <td>
+                        End Date
+                        <vuejs-datepicker v-model="batchEndDate" id="batch_end_date" format="yyyy-MM-dd"
+                                          typeable></vuejs-datepicker>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="batch_machine_learning_data"></div>
+            <br>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="batch_machine_learning_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+
+        <v-tab>Tree - Explicit Decision</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-select
+                                attach
+                                :items="decision_outcomes"
+                                label="Decision Outcome *"
+                                dense
+                                outlined
+                                value="Covered/Approved"
+                                v-model="decisionOutcomeExpl"
+                        ></v-select>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <v-btn v-on:click="makeWordTreeExplicit('priorAuthWordTreeExplicit', 'wordtree_explicit_raw_data')">
+                            Create Explicit Word Tree
+                        </v-btn>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="wordtree_explicit_data"></div>
+            <br>
+            <div class="content panel-body" id="wordtree_explicit_raw_data"></div>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="wordtree_explicit_raw_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+
+        <v-tab>Tree - Implicit Decision</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-select
+                                attach
+                                :items="decision_outcomes"
+                                label="Decision Outcome *"
+                                dense
+                                outlined
+                                value="Covered/Approved"
+                                v-model="decisionOutcomeImpl"
+                        ></v-select>
+                    </td>
+                    <td>&nbsp;&nbsp;</td>
+                    <td>
+                        <label for="implicit_phrase"><input type="radio" id='implicit_phrase' value="phrase"
+                                                            v-model="implicit_type"> Phrase</label>
+                        <label for="implicit_word"><input type="radio" id='implicit_word' value="word"
+                                                          v-model="implicit_type" disabled>Word</label>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <v-btn v-on:click="makeWordTreeImplicit('priorAuthWordTreeImplicit', 'wordtree_implicit_raw_data')">
+                            Create Implicit Word Tree
+                        </v-btn>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="wordtree_implicit_data"></div>
+            <br>
+            <div id="wordtree_implicit_raw_data"></div>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="wordtree_implicit_raw_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+
+        <v-tab>Seaborn Plot</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-btn v-on:click="restCall('swarmplot', 'swarmplot_data')">Create Swarm Plot</v-btn>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="swarmplot_data"></div>
+            <br>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="swarmplot_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+
+        <v-tab>Scatter Chart</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-btn v-on:click="makeScatterChart('scatterchart', 'scatterchart_raw_data')">Create Scatter
+                            Chart
+                        </v-btn>
+                    </td>
+                </tr>
+            </table>
+            <div id="scatterchart_data"></div>
+            <br/>
+            <div id="scatterchart_table"></div>
+            <br/>
+            <div class="content panel-body" id="scatterchart_raw_data"></div>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="scatterchart_raw_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+
+        <v-tab>Activities</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-select
+                                :items="care_management_sheets"
+                                label="Source *"
+                                attach dense outlined
+                                value="Graph-CC_Activity_data.xlsx"
+                                v-model="careManageSpreadsheet"
+                        ></v-select>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <v-btn v-on:click="makeCareManWordTreeExplicit('careManWordTreeExplicit', 'care_one_wordtree_explicit_raw_data')">
+                            Create Care Management Word Tree
+                        </v-btn>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="care_one_wordtree_explicit_data"></div>
+            <br>
+            <div style="overflow-x: auto; margin-left: 40px" id="care_one_wordtree_explicit_raw_data"></div>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="care_one_wordtree_explicit_raw_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+
+        <v-tab>Hsc Search</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-text-field
+                                label="HSC Id *"
+                                placeholder="hsc id"
+                                outlined dense persistent-hint clearable
+                                hint="e.g. 147416056"
+                                v-model="srn"
+                        ></v-text-field>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <v-btn v-on:click="restCall('priorAuthItem', 'hsc_detail_data')">Get HSC Details</v-btn>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="hsc_detail_data"></div>
+            <br>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="hsc_detail_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+
+        <v-tab>Benefits Test</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-text-field
+                                label="Subscriber Id"
+                                placeholder="subscriber id"
+                                outlined
+                                hint="e.g. 00727137882"
+                                persistent-hint
+                                clearable
+                                v-model="benefits_clarity_mbr_id"
+                        ></v-text-field>
+                    </td>
+                    <td><br/>&nbsp;&nbsp;or&nbsp;&nbsp;</td>
+                    <td>
+                        <v-text-field
+                                label="Policy Id"
+                                placeholder="policy id"
+                                outlined
+                                hint="e.g. 911317703"
+                                persistent-hint
+                                clearable
+                                v-model="benefits_clarity_policy_id"
+                        ></v-text-field>
+                    </td>
+                    <td><br/>&nbsp;&nbsp;or&nbsp;&nbsp;</td>
+                    <td>
+                        <v-text-field
+                                label="HSC Id"
+                                placeholder="hsc id"
+                                outlined
+                                hint="e.g. 147416056"
+                                persistent-hint
+                                clearable
+                                v-model="benefits_clarity_hsc_id"
+                        ></v-text-field>
+                    </td>
+                    <td><br/>&nbsp;&nbsp;or&nbsp;&nbsp;</td>
+                    <td>
+                        <v-text-field
+                                label="Procedure Code(s)"
+                                placeholder="procedure code(s)"
+                                outlined
+                                hint="e.g. 27429"
+                                persistent-hint
+                                clearable
+                                v-model="benefits_clarity_proc_code"
+                        ></v-text-field>
+                    </td>
+                    <td><br/>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <v-btn id="benefits_clarity_btn"
+                               v-on:click="pabCall('isBenefitCovered', 'benefits_clarity_data')">Check Benefit
+                            Covereage
+                        </v-btn>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="benefits_clarity_data"></div>
+            <br>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="benefits_clarity_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+
+        <v-tab>Settings</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td style="text-align:center;">
+                        <h2>
+                            [[ timeLeft ]]
+                        </h2>
+                        <h3>Countdown ends at <span>[[ endTime ]]</span></h3>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <div id="settings_data">{{def_icue_writing_setting}}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <v-btn v-on:click="restartCall('settings_data')">Restart Application</v-btn>
+                    </td>
+                    <td></td>
+                    <td>
+                        <v-btn v-on:click="restCall('toggle_settings', 'settings_data')">Toggle ICUE Recording</v-btn>
+                    </td>
+                </tr>
+            </table>
+            <v-sheet class="pa-4 primary lighten-2">
+                <v-text-field
+                        v-model="search_cpt_codes"
+                        label="Search CPT Codes"
+                        dark flat solo-inverted hide-details clearable
+                        clear-icon="mdi-close-circle-outline"
+                ></v-text-field>
+            </v-sheet>
+            <v-treeview
+                    shaped hoverable selectable dense
+                    selected-color="red"
+                    :items="cpt_codes_tree"
+                    :search="search_cpt_codes"
+            >
+                <template slot="append" slot-scope="{item, leaf}">
+                    [[ item.min_value ]]&nbsp;&nbsp;
+                    <v-radio-group v-model="item.choice" v-if="leaf" row>
+                        <v-radio label="Approve" value="approve" color="red darken-3"></v-radio>
+                        <v-radio label="Deny" value="deny" color="indigo darken-3"></v-radio>
+                        <v-radio label="Expedite Review" value="expedite" color="orange darken-3"></v-radio>
+                    </v-radio-group>
+                </template></v-treeview>
+            <br>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="settings_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+
+        <v-tab>Previous Results</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-btn v-on:click="restCall('previousResults', 'prev_batch_machine_learning_data')">View seven days
+                            of results
+                        </v-btn>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>
+                        End of 7-day range
+                        <vuejs-datepicker v-model="batchEndDate" id="batch_end_date" format="yyyy-MM-dd"
+                                          typeable></vuejs-datepicker>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="prev_batch_machine_learning_data"></div>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-btn v-on:click="restCall('previousDecisions', 'prev_decision_data')">View Auto-Decision Results
+                        </v-btn>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>
+                        Start Date
+                        <vuejs-datepicker v-model="batchStartDate" id="batch_start_date" format="yyyy-MM-dd"
+                                          typeable></vuejs-datepicker>
+                    </td>                    <td>
+                        End date
+                        <vuejs-datepicker v-model="batchEndDate" id="batch_end_date" format="yyyy-MM-dd"
+                                          typeable></vuejs-datepicker>
+                    </td>
+                    <td>
+                        <v-text-field
+                                label="Procedure Code"
+                                placeholder="procedure code"
+                                outlined
+                                clearable
+                                v-model="benefits_proc_cd"
+                        ></v-text-field>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="prev_decision_data"></div>
+            <br>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="prev_batch_machine_learning_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+        <v-tab>DSNP</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-btn v-on:click="restCall('DsnpAuths', 'dsnp_auth_data')">Gather Auths for one day
+                            of results
+                        </v-btn>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>
+                        <v-text-field
+                                label="State"
+                                placeholder="state name"
+                                outlined
+                                clearable
+                                v-model="benefits_proc_cd"
+                        ></v-text-field>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="dsnp_auth_data"></div>
+            <br>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="dsnp_auth_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+        <v-tab>Beck</v-tab>
+        <v-tab-item>
+            <br>
+            <table>
+                <tr>
+                    <td>
+                        <v-btn v-on:click="restCall('createEDI', 'EDI_data')">Create EDI 837
+                        </v-btn>
+                    </td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>
+                        <v-text-field
+                                label="HSC ID"
+                                placeholder="HSC ID"
+                                outlined
+                                clearable
+                                v-model="benefits_proc_cd"
+                        ></v-text-field>
+                    </td>
+                </tr>
+            </table>
+            <div style="overflow-x: auto; margin-left: 40px" id="EDI_data"></div>
+            <br>
+            <v-expansion-panels light inset focusable>
+                <v-expansion-panel>
+                    <v-expansion-panel-header>Raw Response</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                        <span v-html="prev_batch_machine_learning_data_result"></span>
+                    </v-expansion-panel-content>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </v-tab-item>
+    </v-tabs>
+</v-app>
+</body>
+
+<script type="text/javascript">
+    const DEFAULT_IP_ADDRESS = '10.201.144.167';
+    let startDate = new Date();
+    let endDate = new Date();
+    let intervalTimer;
+    const app = new Vue({
+        el: '#app',
+        vuetify: new Vuetify(),
+        delimiters: ["[[", "]]"],
+        components: {
+            vuejsDatepicker
+        },
+        data: {
+            selectedTime: 0,
+            timeLeft: '00:00',
+            endTime: '0',
+            activetab: 1,
+            url: '{{def_server_option}}',
+            password: '',
+            message: 'Hello Vue.js!',
+            hscid: ' ',
+            seq: ' ',
+            srn: '',
+            decisionOutcomeImpl: 'Covered/Approved',
+            decisionOutcomeExpl: 'Covered/Approved',
+            decision_outcomes: [{text: 'Covered/Approved', value: 'Covered/Approved'},
+                {'text': 'Not_Covered/Not_Appr', value: 'Not_Covered/Not_Appr'},
+                {'text': 'Blank', value: 'Blank'}],
+            recordCount: '50',
+            implicit_type: 'phrase',
+            hsc_list_sql_selected: "{{def_care_guidance_option}}",
+            benefits_sql_selected: "{{def_benefits_option}}",
+            careManageSpreadsheet: 'Graph-CC_Activity_data.xlsx',
+            care_management_sheets: [{text: "Graph CC_Activity", value: "Graph-CC_Activity_data.xlsx"}],
+            batchStartDate: startDate,
+            batchEndDate: endDate,
+            benefits_mbr_id: '',
+            benefits_proc_cd: '',
+            benefits_category: '',
+            benefits_clarity_mbr_id: '',
+            benefits_clarity_policy_id: '',
+            benefits_clarity_hsc_id: '',
+            benefits_clarity_proc_code: '',
+            benefits_search: '',
+            data_results: [],
+            hsc_list_data_result: '',
+            benefits_data_result: '',
+            batch_machine_learning_data_result: '',
+            wordtree_explicit_raw_data_result: '',
+            wordtree_implicit_raw_data_result: '',
+            swarmplot_data_result: '',
+            scatterchart_raw_data_result: '',
+            care_one_wordtree_explicit_raw_data: '',
+            care_one_wordtree_explicit_raw_data_result: '',
+            hsc_detail_data_result: '',
+            benefits_clarity_data_result: '',
+            settings_data_result: '',
+            prev_batch_machine_learning_data_result: '',
+            server_options: {{server_options}},
+            benefits_options: {{benefits_options}},
+            care_guidance_options: {{care_guidance_options}},
+            cpt_codes_tree: {{cpt_codes_tree}},
+            search_cpt_codes: null
+        },
+    methods: {
+        getBaseUrl: function () {
+            const IP_ADDRESS = this.url || DEFAULT_IP_ADDRESS;
+            const IP_PORT = '5000';
+            return 'http://' + IP_ADDRESS + ':' + IP_PORT + '/';
+        },
+        getPabBaseUrl: function () {
+            const IP_ADDRESS = this.url || DEFAULT_IP_ADDRESS;
+            const IP_PORT = '5030';
+            return 'http://' + IP_ADDRESS + ':' + IP_PORT + '/';
+        },
+        makeWordTreeImplicit: function (nameId, target) {
+            this.restCall(nameId, target, function (data) {
+                google.charts.load('current', {packages: ['wordtree']});
+                google.setOnLoadCallback(app.wordTreeImplicit);
+            });
+        },
+        wordTreeImplicit: function () {
+            var target = document.getElementById('wordtree_implicit_data');
+            var resultData = document.getElementById('wordtree_implicit_raw_data');
+            var json_data = new google.visualization.DataTable(resultData.innerHTML);
+            var json_table = new google.visualization.WordTree(target);
+            var options = {
+                wordtree: {
+                    format: 'implicit',
+                    word: this.decisionOutcomeImpl
+                },
+                height: 1200,
+                width: 2000
+            };
+
+            json_table.clearChart();
+            json_table.draw(json_data, options);
+        },
+        makeWordTreeExplicit: function (nameId, target) {
+            let resultData = document.getElementById('wordtree_explicit_data');
+            resultData.innerHTML = 'Processing Word Tree ...';
+
+            this.restCall(nameId, target, function (data) {
+                google.charts.load('current', {packages: ['wordtree']});
+                google.setOnLoadCallback(app.wordTreeExplicit);
+            });
+        },
+        wordTreeExplicit: function () {
+            var target = document.getElementById('wordtree_explicit_data');
+            var resultData = document.getElementById('wordtree_explicit_raw_data');
+            var json_data = new google.visualization.DataTable(resultData.innerHTML);
+            var json_table = new google.visualization.WordTree(target);
+            var options = {
+                wordtree: {
+                    format: 'explicit',
+                    word: this.decisionOutcomeExpl
+                },
+                height: 1200,
+                width: 2000
+            };
+
+            json_table.clearChart();
+            json_table.draw(json_data, options);
+        },
+        makeCareManWordTreeExplicit: function (nameId, target) {
+            let resultData = document.getElementById('care_one_wordtree_explicit_data');
+            resultData.innerHTML = 'Processing Care Guidance Word Tree ...';
+
+            this.restCall(nameId, target, function (data) {
+                google.charts.load('current', {packages: ['wordtree']});
+                google.setOnLoadCallback(app.careManWordTreeExplicit);
+            });
+        },
+        careManWordTreeExplicit: function () {
+            var target = document.getElementById('care_one_wordtree_explicit_data');
+            var resultData = document.getElementById('care_one_wordtree_explicit_raw_data');
+            var json_data = new google.visualization.DataTable(resultData.innerHTML);
+            var json_table = new google.visualization.WordTree(target);
+            var options = {
+                wordtree: {
+                    format: 'explicit',
+                    word: this.decisionOutcomeExpl
+                },
+                height: 1200,
+                width: 2000
+            };
+
+            json_table.clearChart();
+            json_table.draw(json_data, options);
+        },
+        makeScatterChart: function (nameId, target) {
+            let resultData = document.getElementById('scatterchart_data');
+            resultData.innerHTML = 'Processing Scatter Chart ...';
+
+            this.restCall(nameId, target, function (data) {
+                google.charts.load('current', {packages: ['corechart']});
+                google.setOnLoadCallback(app.scatterChart);
+
+                google.charts.load('current', {packages: ['table']});
+                google.setOnLoadCallback(app.scatterChartTable);
+            });
+        },
+        scatterChart: function () {
+            var target = document.getElementById('scatterchart_data');
+            var resultData = document.getElementById('scatterchart_raw_data');
+            var json_data = new google.visualization.DataTable(resultData.innerHTML);
+            var json_table = new google.visualization.ScatterChart(target);
+            let myData = JSON.parse(resultData.innerHTML);
+            var myTitle = myData.cols[0].label + ' vs. ' + myData.cols[1].label;
+            var options = {
+                title: myTitle,
+                hAxis: {title: myData.cols[0].label, minValue: 0},
+                vAxis: {title: myData.cols[1].label, minValue: 0},
+                legend: 'none',
+                height: 500,
+                width: 900
+            };
+
+            json_table.clearChart();
+            json_table.draw(json_data, options);
+        },
+        scatterChartTable: function () {
+            var target = document.getElementById('scatterchart_table');
+            var resultData = document.getElementById('scatterchart_raw_data');
+            var json_data = new google.visualization.DataTable(resultData.innerHTML);
+            json_table = new google.visualization.Table(target);
+
+            json_table.clearChart();
+            json_table.draw(json_data, {showRowNumber: true, width: '100%', height: '100%'});
+        },
+        makeTable: function (nameId, target) {
+            this.restCall(nameId, target, function (data) {
+                google.charts.load('current', {packages: ['table']});
+                google.setOnLoadCallback(app.table);
+            });
+        },
+        table: function () {
+            var target = document.getElementById('ideas_list_table');
+            var resultData = document.getElementById('ideas_list_raw_data');
+            var json_data = new google.visualization.DataTable(resultData.innerHTML);
+            json_table = new google.visualization.Table(target);
+
+            json_table.clearChart();
+            json_table.draw(json_data, {showRowNumber: true, width: '100%', height: '100%'});
+        },
+        assignValue: function (baseDataResult, text) {
+            switch (baseDataResult) {
+                case 'hsc_list_data_result':
+                    this.hsc_list_data_result = text;
+                    break;
+                case 'benefits_data_result':
+                    this.benefits_data_result = text;
+                    break;
+                case 'batch_machine_learning_data_result':
+                    this.batch_machine_learning_data_result = text;
+                    break;
+                case 'wordtree_explicit_raw_data_result':
+                    this.wordtree_explicit_raw_data_result = text;
+                    break;
+                case 'wordtree_implicit_raw_data_result':
+                    this.wordtree_implicit_raw_data_result = text;
+                    break;
+                case 'swarmplot_data_result':
+                    this.swarmplot_data_result = text;
+                    break;
+                case 'scatterchart_raw_data_result':
+                    this.scatterchart_raw_data_result = text;
+                    break;
+                case 'care_one_wordtree_explicit_raw_data_result':
+                    this.care_one_wordtree_explicit_raw_data_result = text;
+                    break;
+                case 'hsc_detail_data_result':
+                    this.hsc_detail_data_result = text;
+                    break;
+                case 'benefits_clarity_data_result':
+                    this.benefits_clarity_data_result = text;
+                    break;
+                case 'settings_data_result':
+                    this.settings_data_result = text;
+                    break;
+                case 'prev_batch_machine_learning_data_result':
+                    this.prev_batch_machine_learning_data_result = text;
+                    break;
+            }
+        },
+        restartCall: function (targetData, successFn) {
+            let baseData = targetData || 'defaultData';
+            let baseDataResult = baseData + '_result';
+            let _this = this;
+            const axiosHelper = new AxiosHelper(targetData, successFn);
+            axios.post(this.getBaseUrl() + 'restart'
+            ).then(function (response) {
+                let data_result = axiosHelper.responseThen(response);
+                _this.assignValue(baseDataResult, data_result);
+                _this.setTime(60);
+            }).catch(function (error) {
+                let data_result = axiosHelper.responseCatch(error);
+                _this.assignValue(baseDataResult, data_result);
+            });
+        },
+        restCall: function (nameId, targetData, successFn) {
+            let params;
+
+            let baseData = targetData || 'defaultData';
+            let baseDataResult = baseData + '_result';
+            // alert('restCall ' + nameId + '  target: ' + targetData + '  base: ' + baseData);
+            let resultData = document.getElementById(baseData);
+            resultData.innerHTML = 'Processing ...';
+            this.assignValue(baseDataResult, 'Waiting for response...');
+            this.srn = this.srn || "";
+            this.recordCount = this.recordCount || 50;
+            this.benefits_mbr_id = this.benefits_mbr_id || "";
+            this.benefits_proc_cd = this.benefits_proc_cd || "";
+            this.benefits_category = this.benefits_category || "";
+            this.benefits_clarity_mbr_id = this.benefits_clarity_mbr_id || "";
+            this.benefits_clarity_policy_id = this.benefits_clarity_policy_id || "";
+            this.benefits_clarity_hsc_id = this.benefits_clarity_hsc_id || "";
+            this.benefits_clarity_proc_code = this.benefits_clarity_proc_code || "";
+            this.benefits_search = this.benefits_search || "";
+            this.batchStartDate = this.batchStartDate || startDate;
+            this.batchEndDate = this.batchEndDate || endDate;
+            params = {
+                srn: this.srn,
+                recordCount: this.recordCount,
+                hscListSqlSelected: this.hsc_list_sql_selected,
+                careManageSpreadsheet: this.careManageSpreadsheet,
+                benefits_mbr_id: this.benefits_mbr_id,
+                benefits_proc_cd: this.benefits_proc_cd,
+                benefits_category: this.benefits_category,
+                benefits_sql_selected: this.benefits_sql_selected,
+                benefits_clarity_mbr_id: this.benefits_clarity_mbr_id,
+                benefits_clarity_policy_id: this.benefits_clarity_policy_id,
+                benefits_clarity_hsc_id: this.benefits_clarity_hsc_id,
+                benefits_clarity_proc_code: this.benefits_clarity_proc_code,
+                benefits_search: this.benefits_search,
+                batchEndDate: this.fmtDate(this.batchEndDate),
+                batchStartDate: this.fmtDate(this.batchStartDate) // make it a string
+            };
+
+            let _this = this;
+            const axiosHelper = new AxiosHelper(targetData, successFn);
+            axios.post(this.getBaseUrl() + 'basic/' + nameId, params
+            ).then(function (response) {
+                let data_result = axiosHelper.responseThen(response);
+                _this.assignValue(baseDataResult, data_result);
+            }).catch(function (error) {
+                let data_result = axiosHelper.responseCatch(error);
+                _this.assignValue(baseDataResult, data_result);
+            });
+        },
+        pabCall: function (nameId, targetData, successFn) {
+            let axiosHelper = new AxiosHelper(targetData, successFn);
+            let params;
+
+            // alert('restCall ' + nameId);
+            let baseData = targetData || 'defaultData';
+            let baseDataResult = baseData + '_result';
+            let resultData = document.getElementById(baseData);
+            resultData.innerHTML = 'Processing ...';
+            this.assignValue(baseDataResult, 'Waiting for response...');
+            this.benefits_clarity_mbr_id = this.benefits_clarity_mbr_id || "";
+            this.benefits_clarity_policy_id = this.benefits_clarity_policy_id || "";
+            this.benefits_clarity_hsc_id = this.benefits_clarity_hsc_id || "";
+            this.benefits_clarity_proc_code = this.benefits_clarity_proc_code || "";
+            params = {
+                benefits_clarity_mbr_id: this.benefits_clarity_mbr_id,
+                benefits_clarity_policy_id: this.benefits_clarity_policy_id,
+                benefits_clarity_hsc_id: this.benefits_clarity_hsc_id,
+                benefits_clarity_proc_code: this.benefits_clarity_proc_code
+            };
+
+            let _this = this;
+            axios.post(this.getPabBaseUrl() + 'benefits_clarity/v1/' + nameId, params
+            ).then(function (response) {
+                let data_result = axiosHelper.responseThen(response);
+                _this.assignValue(baseDataResult, data_result);
+            }).catch(function (error) {
+                let data_result = axiosHelper.responseCatch(error);
+                _this.assignValue(baseDataResult, data_result);
+            });
+        },
+        decisionCall: function (nameId, targetData, successFn) {
+            let baseData = targetData || 'defaultData';
+            let resultElement = document.getElementById(baseData + '_result');
+            let resultData = document.getElementById(baseData);
+            resultData.innerHTML = 'Processing ...';
+            resultElement.innerHTML = 'Waiting for response...';
+
+            // alert('restCall ' + nameId);
+            this.hscid = this.hscid || "";
+            this.seq = this.seq || "";
+            this.recordCount = this.recordCount || 50;
+            let _this = this;
+            axios.put(this.getBaseUrl() + 'update/' + nameId,
+                {
+                    hscid: this.hscid,
+                    seq: this.seq,
+                    recordCount: this.recordCount,
+                    batchStartDate: this.fmtDate(this.batchStartDate), // make it a string
+                    batchEndDate: this.fmtDate(this.batchEndDate) // make it a string
+                }).then(function (response) {
+                lclData = response.data;
+                resultElement.innerHTML = '<h4>Result</h4>' +
+                    '<h5>Status:</h5> ' +
+                    '<pre>' + response.status + ' ' + response.statusText + '</pre>' +
+                    '<h5>Headers:</h5>' +
+                    '<pre>' + JSON.stringify(response.headers, null, '\t') + '</pre>' +
+                    '<h5>Data:</h5>' +
+                    '<pre>' + lclData + '</pre>';
+                resultData.innerHTML = lclData;
+                if (typeof successFn === 'function') {
+                    successFn(lclData);
+                }
+            }).catch(function (error) {
+                resultData.innerHTML = 'Failed. ';
+                resultElement.innerHTML = '<h3>' + error + '<h3>';
+                resultElement.innerHTML += '<h4>Result</h4>' +
+                    '<h5>Message:</h5> ' + error.message;
+                if (error.response) {
+                    resultElement.innerHTML += '<h5>Status:</h5> ' +
+                        '<pre>' + error.response.status + ' ' + error.response.statusText + '</pre>';
+                    resultElement.innerHTML += '<h5>Headers:</h5>' +
+                        '<pre>' + JSON.stringify(error.response.headers, null, '\t') + '</pre>';
+                    resultElement.innerHTML += '<h5>Data:</h5>' +
+                        '<pre>' + JSON.stringify(error.response.data, null, '\t') + '</pre>';
+                    resultData.innerHTML += '<pre>' + JSON.stringify(error.response.data, null, '\t') + '</pre>'
+                } else {
+                    resultElement.innerHTML += '<h5>No error response.</h5> ';
+                    resultData.innerHTML += 'No error response returned.';
+                }
+            });
+        },
+        fmtDate: function (dateObj) {
+            return dateObj.toISOString();
+        }, setTime: function (seconds) {
+            clearInterval(intervalTimer);
+            this.timer(seconds);
+        },
+        timer: function (seconds) {
+            const now = Date.now();
+            const end = now + seconds * 1000;
+            this.displayTimeLeft(seconds);
+
+            this.selectedTime = seconds;
+            // this.initialTime = seconds;
+            this.displayEndTime(end);
+            this.countdown(end);
+        },
+        countdown: function (end) {
+            // this.initialTime = this.selectedTime;
+            intervalTimer = setInterval(() => {
+                const secondsLeft = Math.round((end - Date.now()) / 1000);
+
+                if (secondsLeft === 0) {
+                    this.endTime = 0;
+                    location.reload(true);
+                }
+
+                if (secondsLeft < 0) {
+                    clearInterval(intervalTimer);
+                    location.reload(true);
+                    return;
+                }
+                this.displayTimeLeft(secondsLeft)
+            }, 1000);
+        },
+        displayTimeLeft: function (secondsLeft) {
+            const minutes = Math.floor((secondsLeft % 3600) / 60);
+            const seconds = secondsLeft % 60;
+
+            this.timeLeft = `${zeroPadded(minutes)}:${zeroPadded(seconds)}`;
+        },
+        displayEndTime: function (timestamp) {
+            const end = new Date(timestamp);
+            const hours = end.getHours();
+            const minutes = end.getMinutes();
+            const seconds = end.getSeconds();
+
+            this.endTime = `${hourConvert(hours)}:${zeroPadded(minutes)}:${zeroPadded(seconds)}`
+        }
+      }  // methods
+    });
+
+    function zeroPadded(num) {
+        // 4 --> 04
+        return num < 10 ? `0${num}` : num;
+    }
+
+    function hourConvert(hour) {
+        // 15 --> 3
+        return (hour % 12) || 12;
+    }
+
+    HtmlExtensions.addEventToClassCollapsible();
+    HtmlExtensions.includeHTML();
+</script>
+
+</html>

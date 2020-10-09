@@ -1,0 +1,78 @@
+.hsc {
+    border-collapse: collapse;
+    border: 1px solid black;
+}
+
+table.hsc tr th {
+    border: 2px solid black;
+    background-color: aqua;
+}
+
+table.hsc tr td {
+    border: 1px solid black;
+}
+
+table.hsc tr:nth-child(odd) {
+    background-color: lightgray;
+}
+
+td {
+    vertical-align: top;
+    padding-bottom: 12px;
+}
+
+label {
+    cursor: default;
+    font-weight: bold;
+    display: table;
+}
+
+label.required::after {
+    font-weight: bold;
+    color: red;
+    content: ' *';
+}
+
+sub {
+    display: table;
+    font-weight: lighter;
+    font-size: xx-small;
+}
+
+.collapsible {
+    background-color: #777;
+    color: white;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+}
+
+.dashboard {
+    cursor: pointer;
+    color: blue;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 25px;
+}
+
+.active, .collapsible:hover {
+    background-color: #555;
+}
+
+.content {
+    padding: 0 18px;
+    display: none;
+    overflow: hidden;
+    background-color: #f1f1f1;
+}
+
+.test_data {
+    text-align: left;
+    color: lightslategray;
+}
