@@ -142,6 +142,3 @@ def search_data():
         return jsonify({"msg": "Missing search parameter"}), 400
 
     return jsonify({"speech_text": f'{imm.dataframes_search(str(speech_text))}'}), 200
-
-# if __name__ == '__main__':
-#     start_app()
